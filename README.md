@@ -36,16 +36,32 @@ solo-launch-nextjs/
 │       └── [slug]/page.tsx # Individual itinerary with day-by-day
 ├── components/              # React components
 │   ├── SiteChrome.tsx      # Header and footer
+    │   ├── about/              # About page
+    │   │   └── page.tsx         # About page route
+    │   ├── contact/             # Contact page
+    │   │   └── page.tsx         # Contact page with form
+    │   ├── api/                 # API routes
+    │   │   └── contact/
+    │   │       └── route.ts     # Contact form API endpoint
+    │   ├── not-found.tsx        # 404 page
+    │   └── error.tsx            # Error boundary
 │   ├── Logo.tsx            # Logo component
 │   ├── ChatWidget.tsx      # Floating chat interface
 │   ├── AboutBody.tsx       # About section layout
 │   └── Stars.tsx           # Star rating component
+    │   ├── Newsletter.tsx       # Email subscription component
+    │   ├── CTA.tsx              # Call-to-action component
+    │   └── Testimonials.tsx     # Client testimonial display
 ├── lib/                     # Utility functions
 │   ├── getContent.ts       # Sanity query helpers
 │   ├── getPages.ts         # Page fetching utilities
 │   ├── jsonLd.ts           # Structured data generation
 │   ├── resolveImage.ts     # Image URL helpers
 │   └── types.ts            # TypeScript interfaces
+    │   ├── client.ts            # Sanity client (deprecated location)
+    │   ├── image.ts             # Image URL builder (deprecated location)
+    │   ├── metadata.ts          # SEO metadata utilities
+    │   └── sampleContent.ts     # Placeholder content for development
 ├── sanity/                  # Sanity CMS configuration
 │   ├── lib/
 │   │   ├── client.ts       # Sanity client setup
@@ -194,6 +210,52 @@ All components are in the `/components` directory. They're built with TypeScript
 2. Add the schema to `/sanity/schemas/index.ts`
 3. Create corresponding pages in `/app/` directory
 4. Use the Sanity client to fetch data
+
+## Architecture Decisions
+
+This template follows a production-ready architecture with several key design principles:
+
+### Atomic File Structure
+
+The codebase is organized using an atomic approach where each component, utility, and page exists as a standalone, self-contained module. This enables:
+
+- **Easy maintenance**: Changes to one file don't cascade unexpectedly
+- **Clear dependencies**: Each file explicitly imports what it needs
+- **Atomic commits**: Git history shows granular, meaningful changes
+- **Team collaboration**: Multiple developers can work on different files simultaneously
+
+### SEO and Metadata
+
+SEO is built into the core architecture:
+
+- `lib/metadata.ts` provides utilities for generating Open Graph metadata
+- `lib/jsonLd.ts` creates structured data for search engines
+- Each page uses Next.js 14's `generateMetadata` for dynamic meta tags
+- Automatic sitemap and robots.txt generation
+
+### Component Design
+
+- **Reusable**: Components like `SiteChrome`, `Newsletter`, and `Stars` are used across multiple pages
+- **TypeScript-first**: Full type safety with proper interfaces
+- **Server Components**: Leverage Next.js 14 App Router for optimal performance
+- **CSS Variables**: Design tokens in `globals.css` for consistent theming
+
+### Content Management
+
+- **Headless CMS**: Sanity provides flexible content modeling
+- **Type-safe queries**: Sanity client configured with TypeScript
+- **Image optimization**: Automatic CDN delivery and responsive images
+- **Preview mode**: Built-in support for content preview
+
+### Development Workflow
+
+The template supports a streamlined workflow:
+
+1. **Local development**: `npm run dev` with hot reload
+2. **Content editing**: Sanity Studio for non-technical editors
+3. **Type checking**: `npm run build` validates TypeScript
+4. **Deployment**: One-click Vercel deployment with automatic previews
+
 
 ## Learn More
 
