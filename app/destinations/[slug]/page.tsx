@@ -2,6 +2,7 @@ import { client } from '@/sanity/lib/client'
 import Image from 'next/image'
 import { urlFor } from '@/sanity/lib/image'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next';
 
 interface Destination {
   _id: string
@@ -18,6 +19,48 @@ interface Props {
   params: { slug: string }
 }
 
+
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const destination = await client.fetch<Destination>({
+    query: `*[_type == "destination" && slug.current == $slug][0]{
+      _id,
+      name,
+      description,
+      mainImage{
+        asset->{_id, url},
+        alt
+      }
+    }`,
+    params: { slug: params.slug }
+  });
+
+  if (!destination) {
+    return {
+      title: 'Destination Not Found',
+    };
+  }
+
+  const imageUrl = destination.mainImage?.asset?.url;
+
+  return {
+    title: `${destination.name} - Solo Launch Travel`,
+    description: destination.description || `Explore ${destination.name} with Solo Launch`,
+    openGraph: {
+      title: destination.name,
+      description: destination.description || `Discover ${destination.name}`,
+      images: imageUrl ? [{ url: imageUrl, alt: destination.mainImage?.alt || destination.name }] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: destination.name,
+      description: destination.description || `Discover ${destination.name}`,
+      images: imageUrl ? [imageUrl] : [],
+    },
+  };
+}
 export async function generateStaticParams() {
   const destinations = await client.fetch<{ slug: { current: string } }[]>(`
     *[_type == "destination"] {
