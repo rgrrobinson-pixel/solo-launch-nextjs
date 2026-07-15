@@ -2,6 +2,7 @@ import { client } from '@/sanity/lib/client'
 import Image from 'next/image'
 import { urlFor } from '@/sanity/lib/image'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next';
 
 interface Day {
   dayNumber: number
@@ -30,6 +31,52 @@ interface Props {
   params: { slug: string }
 }
 
+
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const itinerary = await client.fetch<Itinerary>({
+    query: `*[_type == "itinerary" && slug.current == $slug][0]{
+      _id,
+      title,
+      excerpt,
+      description,
+      duration,
+      price,
+      mainImage{
+        asset->{_id, url},
+        alt
+      }
+    }`,
+    params: { slug: params.slug }
+  });
+
+  if (!itinerary) {
+    return {
+      title: 'Itinerary Not Found',
+    };
+  }
+
+  const imageUrl = itinerary.mainImage?.asset?.url;
+  const description = itinerary.excerpt || itinerary.description || `${itinerary.duration}-day tour with Solo Launch Travel`;
+
+  return {
+    title: `${itinerary.title} - Solo Launch Travel`,
+    description,
+    openGraph: {
+      title: itinerary.title,
+      description,
+      images: imageUrl ? [{ url: imageUrl, alt: itinerary.mainImage?.alt || itinerary.title }] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: itinerary.title,
+      description,
+      images: imageUrl ? [imageUrl] : [],
+    },
+  };
+}
 export async function generateStaticParams() {
   const itineraries = await client.fetch<{ slug: { current: string } }[]>(`
     *[_type == "itinerary"] {
